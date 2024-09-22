@@ -60,6 +60,7 @@ public:
     bool tryDeserializeWholeText(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
 
     void serializeTextCSV(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const override;
+    void serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const override;
 
     /** It is questionable, how NULL values could be represented in CSV. There are three variants:
       * 1. \N
@@ -71,6 +72,9 @@ public:
       */
     void deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
     bool tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+    bool tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
 
     void serializeTextJSON(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const override;
     void deserializeTextJSON(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
@@ -89,6 +93,8 @@ public:
     static bool deserializeNullAsDefaultOrNestedTextCSV(IColumn & nested_column, ReadBuffer & istr, const FormatSettings & settings, const SerializationPtr & nested_serialization);
     static bool deserializeNullAsDefaultOrNestedTextJSON(IColumn & nested_column, ReadBuffer & istr, const FormatSettings &, const SerializationPtr & nested_serialization);
     static bool deserializeNullAsDefaultOrNestedTextRaw(IColumn & nested_column, ReadBuffer & istr, const FormatSettings & settings, const SerializationPtr & nested_serialization);
+    
+    static bool deserializeNullAsDefaultOrNestedTextCSV2(IColumn & nested_column, ReadBuffer & istr, const FormatSettings & settings, const SerializationPtr & nested_serialization);
 
     /// If Check for NULL and deserialize value into non-nullable column or insert default value of nested type.
     /// Return true if parsing was successful and false in case of any error.
@@ -98,7 +104,8 @@ public:
     static bool tryDeserializeNullAsDefaultOrNestedTextCSV(IColumn & nested_column, ReadBuffer & istr, const FormatSettings & settings, const SerializationPtr & nested_serialization);
     static bool tryDeserializeNullAsDefaultOrNestedTextJSON(IColumn & nested_column, ReadBuffer & istr, const FormatSettings &, const SerializationPtr & nested_serialization);
     static bool tryDeserializeNullAsDefaultOrNestedTextRaw(IColumn & nested_column, ReadBuffer & istr, const FormatSettings & settings, const SerializationPtr & nested_serialization);
-
+    
+    static bool tryDeserializeNullAsDefaultOrNestedTextCSV2(IColumn & nested_column, ReadBuffer & istr, const FormatSettings & settings, const SerializationPtr & nested_serialization);
 
     static void serializeNullEscaped(WriteBuffer & ostr, const FormatSettings & settings);
     static bool tryDeserializeNullEscaped(ReadBuffer & istr, const FormatSettings & settings);
@@ -113,6 +120,9 @@ public:
     static void serializeNullText(WriteBuffer & ostr, const FormatSettings & settings);
     static bool tryDeserializeNullText(ReadBuffer & istr);
     static void serializeNullXML(WriteBuffer & ostr);
+
+    static void serializeNullCSV2(WriteBuffer & ostr, const FormatSettings & settings);
+    static bool tryDeserializeNullCSV2(ReadBuffer & istr, const FormatSettings & settings);
 
 private:
     struct SubcolumnCreator : public ISubcolumnCreator

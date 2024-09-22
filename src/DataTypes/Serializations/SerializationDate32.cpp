@@ -108,6 +108,13 @@ void SerializationDate32::serializeTextCSV(const IColumn & column, size_t row_nu
     writeChar('"', ostr);
 }
 
+void SerializationDate32::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    writeChar('"', ostr);
+    serializeText(column, row_num, ostr, settings);
+    writeChar('"', ostr);
+}
+
 void SerializationDate32::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     LocalDate value;
@@ -115,7 +122,23 @@ void SerializationDate32::deserializeTextCSV(IColumn & column, ReadBuffer & istr
     assert_cast<ColumnInt32 &>(column).getData().push_back(value.getExtenedDayNum());
 }
 
+void SerializationDate32::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    LocalDate value;
+    readCSV(value, istr);
+    assert_cast<ColumnInt32 &>(column).getData().push_back(value.getExtenedDayNum());
+}
+
 bool SerializationDate32::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    LocalDate value;
+    if (!tryReadCSV(value, istr))
+        return false;
+    assert_cast<ColumnInt32 &>(column).getData().push_back(value.getExtenedDayNum());
+    return true;
+}
+
+bool SerializationDate32::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     LocalDate value;
     if (!tryReadCSV(value, istr))

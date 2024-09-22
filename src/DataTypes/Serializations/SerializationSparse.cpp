@@ -352,9 +352,20 @@ void SerializationSparse::serializeTextCSV(const IColumn & column, size_t row_nu
     nested->serializeTextCSV(column_sparse.getValuesColumn(), column_sparse.getValueIndex(row_num), ostr, settings);
 }
 
+void SerializationSparse::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    const auto & column_sparse = assert_cast<const ColumnSparse &>(column);
+    nested->serializeTextCSV(column_sparse.getValuesColumn(), column_sparse.getValueIndex(row_num), ostr, settings);
+}
+
 void SerializationSparse::deserializeTextCSV(IColumn &, ReadBuffer &, const FormatSettings &) const
 {
-    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "Method 'deserializeTextCSV' is not implemented for SerializationSparse");
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "Method 'deserializeTextCSV2' is not implemented for SerializationSparse");
+}
+
+void SerializationSparse::deserializeTextCSV2(IColumn &, ReadBuffer &, const FormatSettings &) const
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "Method 'deserializeTextCSV2' is not implemented for SerializationSparse");
 }
 
 void SerializationSparse::serializeText(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const

@@ -44,11 +44,14 @@ public:
     /** Text serialization for the CSV format.
       */
     void serializeTextCSV(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const override;
+    void serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const override;
     /** delimiter - the delimiter we expect when reading a string value that is not double-quoted
       * (the delimiter is not consumed).
       */
     void deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
     bool tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
+    bool tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
 
     /** Text serialization intended for using in JSON format.
       * force_quoting_64bit_integers parameter forces to brace UInt64 and Int64 types into quotes.

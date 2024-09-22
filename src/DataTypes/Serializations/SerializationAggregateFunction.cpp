@@ -201,8 +201,19 @@ void SerializationAggregateFunction::serializeTextCSV(const IColumn & column, si
     writeCSV(serializeToString(function, column, row_num, version), ostr);
 }
 
+void SerializationAggregateFunction::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const
+{
+    writeCSV(serializeToString(function, column, row_num, version), ostr);
+}
 
 void SerializationAggregateFunction::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String s;
+    readCSV(s, istr, settings.csv);
+    deserializeFromString(function, column, s, version);
+}
+
+void SerializationAggregateFunction::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
     readCSV(s, istr, settings.csv);

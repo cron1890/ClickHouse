@@ -122,14 +122,29 @@ void SerializationWrapper::serializeTextCSV(const IColumn & column, size_t row_n
     nested_serialization->serializeTextCSV(column, row_num, ostr, settings);
 }
 
+void SerializationWrapper::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    nested_serialization->serializeTextCSV2(column, row_num, ostr, settings);
+}
+
 void SerializationWrapper::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     nested_serialization->deserializeTextCSV(column, istr, settings);
 }
 
+void SerializationWrapper::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    nested_serialization->deserializeTextCSV2(column, istr, settings);
+}
+
 bool SerializationWrapper::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     return nested_serialization->tryDeserializeTextCSV(column, istr, settings);
+}
+
+bool SerializationWrapper::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    return nested_serialization->tryDeserializeTextCSV2(column, istr, settings);
 }
 
 void SerializationWrapper::serializeText(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const

@@ -97,6 +97,11 @@ void SerializationInterval::deserializeTextCSV(IColumn & column, ReadBuffer & is
     dispatch(&ISerialization::deserializeTextCSV, settings.interval.output_format, column, istr, settings);
 }
 
+void SerializationInterval::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    dispatch(&ISerialization::deserializeTextCSV2, settings.interval.output_format, column, istr, settings);
+}
+
 void SerializationInterval::deserializeTextEscaped(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     dispatch(&ISerialization::deserializeTextEscaped, settings.interval.output_format, column, istr, settings);
@@ -183,6 +188,11 @@ void SerializationInterval::serializeText(const IColumn & column, size_t row, Wr
 void SerializationInterval::serializeTextCSV(const IColumn & column, size_t row, WriteBuffer & ostr, const FormatSettings & settings) const
 {
     dispatch(&ISerialization::serializeTextCSV, settings.interval.output_format, column, row, ostr, settings);
+}
+
+void SerializationInterval::serializeTextCSV2(const IColumn & column, size_t row, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    dispatch(&ISerialization::serializeTextCSV2, settings.interval.output_format, column, row, ostr, settings);
 }
 
 void SerializationInterval::serializeTextEscaped(

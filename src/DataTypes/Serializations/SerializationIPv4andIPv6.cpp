@@ -103,6 +103,14 @@ void SerializationIP<IPv>::serializeTextCSV(const DB::IColumn & column, size_t r
 }
 
 template <typename IPv>
+void SerializationIP<IPv>::serializeTextCSV2(const DB::IColumn & column, size_t row_num, DB::WriteBuffer & ostr, const DB::FormatSettings & settings) const
+{
+    writeChar('"', ostr);
+    serializeText(column, row_num, ostr, settings);
+    writeChar('"', ostr);
+}
+
+template <typename IPv>
 void SerializationIP<IPv>::deserializeTextCSV(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings &) const
 {
     IPv value;
@@ -112,7 +120,27 @@ void SerializationIP<IPv>::deserializeTextCSV(DB::IColumn & column, DB::ReadBuff
 }
 
 template <typename IPv>
+void SerializationIP<IPv>::deserializeTextCSV2(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings &) const
+{
+    IPv value;
+    readCSV(value, istr);
+
+    assert_cast<ColumnVector<IPv> &>(column).getData().push_back(value);
+}
+
+template <typename IPv>
 bool SerializationIP<IPv>::tryDeserializeTextCSV(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings &) const
+{
+    IPv value;
+    if (!tryReadCSV(value, istr))
+        return false;
+
+    assert_cast<ColumnVector<IPv> &>(column).getData().push_back(value);
+    return true;
+}
+
+template <typename IPv>
+bool SerializationIP<IPv>::tryDeserializeTextCSV2(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings &) const
 {
     IPv value;
     if (!tryReadCSV(value, istr))

@@ -340,6 +340,11 @@ bool ISerialization::tryDeserializeTextCSV(DB::IColumn & column, DB::ReadBuffer 
     return tryDeserializeText([&](DB::IColumn & my_column) { deserializeTextCSV(my_column, istr, settings); }, column);
 }
 
+bool ISerialization::tryDeserializeTextCSV2(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings & settings) const
+{
+    return tryDeserializeText([&](DB::IColumn & my_column) { deserializeTextCSV2(my_column, istr, settings); }, column);
+}
+
 bool ISerialization::tryDeserializeTextEscaped(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings & settings) const
 {
     return tryDeserializeText([&](DB::IColumn & my_column) { deserializeTextEscaped(my_column, istr, settings); }, column);

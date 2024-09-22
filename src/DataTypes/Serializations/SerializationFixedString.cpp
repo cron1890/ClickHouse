@@ -258,8 +258,18 @@ void SerializationFixedString::serializeTextCSV(const IColumn & column, size_t r
     writeCSVString(pos, pos + n, ostr);
 }
 
+void SerializationFixedString::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const
+{
+    const char * pos = reinterpret_cast<const char *>(&assert_cast<const ColumnFixedString &>(column).getChars()[n * row_num]);
+    writeCSVString(pos, pos + n, ostr);
+}
 
 void SerializationFixedString::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    read(*this, column, [&istr, &csv = settings.csv](ColumnFixedString::Chars & data) { readCSVStringInto(data, istr, csv); });
+}
+
+void SerializationFixedString::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     read(*this, column, [&istr, &csv = settings.csv](ColumnFixedString::Chars & data) { readCSVStringInto(data, istr, csv); });
 }
@@ -279,6 +289,18 @@ void SerializationFixedString::serializeTextMarkdown(
     }
     else
         serializeTextEscaped(column, row_num, ostr, settings);
+}
+
+bool SerializationFixedString::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    return tryRead(
+        *this,
+        column,
+        [&istr, &csv = settings.csv](ColumnFixedString::Chars & data)
+        {
+            readCSVStringInto<ColumnFixedString::Chars, false, false>(data, istr, csv);
+            return true;
+        });
 }
 
 }

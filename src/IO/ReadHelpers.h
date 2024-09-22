@@ -644,16 +644,20 @@ void readStringUntilEquals(String & s, ReadBuffer & buf);
   *   but sequences of two consecutive quotes are parsed as single quote inside string;
   */
 void readCSVString(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
+void readCSV2String(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
 
 /// Differ from readCSVString in that it doesn't remove quotes around field if any.
 void readCSVField(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
+void readCSV2Field(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
 
 /// Read string in CSV format until the first occurrence of first_delimiter or second_delimiter.
 /// Similar to readCSVString if string is in quotes, we read only data in quotes.
 String readCSVStringWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter);
+String readCSV2StringWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV2 & settings, const String & first_delimiter, const String & second_delimiter);
 
 /// Same as above but includes quotes in the result if any.
 String readCSVFieldWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter);
+String readCSV2FieldWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter);
 
 /// Read and append result to array of characters.
 template <typename Vector>
@@ -683,6 +687,9 @@ void readCSVStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV &
 /// ReturnType is either bool or void. If bool, the function will return false instead of throwing an exception.
 template <typename Vector, typename ReturnType = void>
 ReturnType readJSONStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::JSON & settings);
+
+template <typename Vector, bool include_quotes = false, bool allow_throw = true>
+void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
 
 template <typename Vector>
 bool tryReadJSONStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::JSON & settings)

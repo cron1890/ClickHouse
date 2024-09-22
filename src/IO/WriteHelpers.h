@@ -697,9 +697,43 @@ void writeCSVString(const char * begin, const char * end, WriteBuffer & buf)
 }
 
 template <char quote = '"'>
+void writeCSV2String(const char * begin, const char * end, WriteBuffer & buf)
+{
+    writeChar(quote, buf);
+
+    const char * pos = begin;
+    while (true)
+    {
+        const char * next_pos = find_first_symbols<quote>(pos, end);
+
+        if (next_pos == end)
+        {
+            buf.write(pos, end - pos);
+            break;
+        }
+        else /// Quotation.
+        {
+            ++next_pos;
+            buf.write(pos, next_pos - pos);
+            writeChar(quote, buf);
+        }
+
+        pos = next_pos;
+    }
+
+    writeChar(quote, buf);
+}
+
+template <char quote = '"'>
 void writeCSVString(const String & s, WriteBuffer & buf)
 {
     writeCSVString<quote>(s.data(), s.data() + s.size(), buf);
+}
+
+template <char quote = '"'>
+void writeCSV2String(const String & s, WriteBuffer & buf)
+{
+    writeCSV2String<quote>(s.data(), s.data() + s.size(), buf);
 }
 
 template <char quote = '"'>

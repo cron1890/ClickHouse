@@ -570,7 +570,60 @@ void SerializationTuple::serializeTextCSV(const IColumn & column, size_t row_num
     }
 }
 
+void SerializationTuple::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    if (settings.csv.serialize_tuple_into_separate_columns)
+    {
+        for (size_t i = 0; i < elems.size(); ++i)
+        {
+            if (i != 0)
+                writeChar(settings.csv.tuple_delimiter, ostr);
+            elems[i]->serializeTextCSV2(extractElementColumn(column, i), row_num, ostr, settings);
+        }
+    }
+    else
+    {
+        WriteBufferFromOwnString wb;
+        serializeText(column, row_num, wb, settings);
+        writeCSV(wb.str(), ostr);
+    }
+}
+
 void SerializationTuple::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    if (settings.csv.deserialize_separate_columns_into_tuple)
+    {
+        addElementSafe<void>(elems.size(), column, [&]
+        {
+            const size_t size = elems.size();
+            for (size_t i = 0; i < size; ++i)
+            {
+                if (i != 0)
+                {
+                    skipWhitespaceIfAny(istr);
+                    assertChar(settings.csv.tuple_delimiter, istr);
+                    skipWhitespaceIfAny(istr);
+                }
+
+                auto & element_column = extractElementColumn(column, i);
+                if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(element_column))
+                    SerializationNullable::deserializeNullAsDefaultOrNestedTextCSV(element_column, istr, settings, elems[i]);
+                else
+                    elems[i]->deserializeTextCSV(element_column, istr, settings);
+            }
+            return true;
+        });
+    }
+    else
+    {
+        String s;
+        readCSV(s, istr, settings.csv);
+        ReadBufferFromString rb(s);
+        deserializeText(column, rb, settings, true);
+    }
+}
+
+void SerializationTuple::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     if (settings.csv.deserialize_separate_columns_into_tuple)
     {
@@ -630,6 +683,49 @@ bool SerializationTuple::tryDeserializeTextCSV(IColumn & column, ReadBuffer & is
                 else
                 {
                 if (!elems[i]->tryDeserializeTextCSV(element_column, istr, settings))
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+    else
+    {
+        String s;
+        if (!tryReadCSV(s, istr, settings.csv))
+            return false;
+        ReadBufferFromString rb(s);
+        return tryDeserializeText(column, rb, settings, true);
+    }
+}
+
+bool SerializationTuple::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    if (settings.csv.deserialize_separate_columns_into_tuple)
+    {
+        return addElementSafe<bool>(elems.size(), column, [&]
+        {
+            const size_t size = elems.size();
+            for (size_t i = 0; i < size; ++i)
+            {
+                if (i != 0)
+                {
+                skipWhitespaceIfAny(istr);
+                if (!checkChar(settings.csv.tuple_delimiter, istr))
+                    return false;
+                skipWhitespaceIfAny(istr);
+                }
+
+                auto & element_column = extractElementColumn(column, i);
+                if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(element_column))
+                {
+                if (!SerializationNullable::tryDeserializeNullAsDefaultOrNestedTextCSV(element_column, istr, settings, elems[i]))
+                    return false;
+                }
+                else
+                {
+                if (!elems[i]->tryDeserializeTextCSV2(element_column, istr, settings))
                     return false;
                 }
             }

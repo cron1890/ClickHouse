@@ -145,6 +145,10 @@ public:
     void deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
     bool tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
 
+    void serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const override;
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+    bool tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+
     void serializeTextJSON(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const override;
     void serializeTextJSONPretty(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings, size_t indent) const override;
     void deserializeTextJSON(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
@@ -205,6 +209,7 @@ private:
     bool tryDeserializeTextQuotedImpl(IColumn & column, const String & field, const FormatSettings & settings) const;
     bool tryDeserializeWholeTextImpl(IColumn & column, const String & field, const FormatSettings & settings) const;
     bool tryDeserializeTextCSVImpl(IColumn & column, const String & field, const FormatSettings & settings) const;
+    bool tryDeserializeTextCSV2Impl(IColumn & column, const String & field, const FormatSettings & settings) const;
     bool tryDeserializeTextJSONImpl(IColumn & column, const String & field, const FormatSettings & settings) const;
     bool tryDeserializeTextRawImpl(IColumn & column, const String & field, const FormatSettings & settings) const;
 

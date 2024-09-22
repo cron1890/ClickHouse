@@ -19,6 +19,8 @@ public:
     bool tryDeserializeText(IColumn & column, ReadBuffer & istr, const FormatSettings &, bool whole) const override;
     void deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
     bool tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
+    bool tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const override;
 
     void serializeTextJSON(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const override;
     void deserializeTextJSON(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;

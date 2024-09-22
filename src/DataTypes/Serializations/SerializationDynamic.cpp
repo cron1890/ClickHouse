@@ -566,6 +566,7 @@ static void deserializeTextImpl(
     const auto & variant_info = dynamic_column.getVariantInfo();
     const auto & variant_types = assert_cast<const DataTypeVariant &>(*variant_info.variant_type).getVariants();
     String field = read_field(istr);
+    auto field_buf = std::make_unique<ReadBufferFromString>(field);
     JSONInferenceInfo json_info;
     auto variant_type = tryInferDataTypeByEscapingRule(field, settings, escaping_rule, &json_info);
     if (escaping_rule == FormatSettings::EscapingRule::JSON)
@@ -579,7 +580,7 @@ static void deserializeTextImpl(
         size_t shared_variant_discr = dynamic_column.getSharedVariantDiscriminator();
         for (size_t i = 0; i != variant_types.size(); ++i)
         {
-            auto field_buf = std::make_unique<ReadBufferFromString>(field);
+            field_buf = std::make_unique<ReadBufferFromString>(field);
             if (i != shared_variant_discr
                 && deserializeVariant<bool>(
                     variant_column,
@@ -590,24 +591,21 @@ static void deserializeTextImpl(
                 return;
         }
 
-        /// We cannot insert value with incomplete type, insert it as String.
         variant_type = std::make_shared<DataTypeString>();
         /// To be able to deserialize field as String with Quoted escaping rule, it should be quoted.
         if (escaping_rule == FormatSettings::EscapingRule::Quoted && (field.size() < 2 || field.front() != '\'' || field.back() != '\''))
             field = "'" + field + "'";
     }
-
-    if (dynamic_column.addNewVariant(variant_type, variant_type->getName()))
+    else if (dynamic_column.addNewVariant(variant_type, variant_type->getName()))
     {
-        auto field_buf = std::make_unique<ReadBufferFromString>(field);
         auto discr = variant_info.variant_name_to_discriminator.at(variant_type->getName());
         deserializeVariant(dynamic_column.getVariantColumn(), dynamic_column.getVariantSerialization(variant_type), discr, *field_buf, deserialize_variant);
         return;
     }
 
-    /// We couldn't add new variant. Insert it into shared variant.
+    /// We couldn't infer type or add new variant. Insert it into shared variant.
     auto tmp_variant_column = variant_type->createColumn();
-    auto field_buf = std::make_unique<ReadBufferFromString>(field);
+    field_buf = std::make_unique<ReadBufferFromString>(field);
     auto variant_type_name = variant_type->getName();
     deserialize_variant(*dynamic_column.getVariantSerialization(variant_type, variant_type_name), *tmp_variant_column, *field_buf);
     dynamic_column.insertValueIntoSharedVariant(*tmp_variant_column, variant_type, variant_type_name, 0);
@@ -651,6 +649,15 @@ void SerializationDynamic::serializeTextCSV(const IColumn & column, size_t row_n
     serializeTextImpl(column, row_num, ostr, settings, nested_serialize);
 }
 
+void SerializationDynamic::serializeTextCSV2(
+    const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    auto nested_serialize = [&settings](const ISerialization & serialization, const IColumn & col, size_t row, WriteBuffer & buf)
+    { serialization.serializeTextCSV2(col, row, buf, settings); };
+
+    serializeTextImpl(column, row_num, ostr, settings, nested_serialize);
+}
+
 void SerializationDynamic::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     auto read_field = [&settings](ReadBuffer & buf)
@@ -673,11 +680,37 @@ void SerializationDynamic::deserializeTextCSV(IColumn & column, ReadBuffer & ist
     deserializeTextImpl(column, istr, settings, read_field, FormatSettings::EscapingRule::CSV, try_deserialize_variant, deserialize_variant);
 }
 
+void SerializationDynamic::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    auto read_field = [&settings](ReadBuffer & buf)
+    {
+        String field;
+        readCSVField(field, buf, settings.csv);
+        return field;
+    };
+
+    auto try_deserialize_variant = [&settings](const ISerialization & serialization, IColumn & col, ReadBuffer & buf)
+    { return serialization.tryDeserializeTextCSV2(col, buf, settings); };
+
+    auto deserialize_variant = [&settings](const ISerialization & serialization, IColumn & col, ReadBuffer & buf)
+    { serialization.deserializeTextCSV2(col, buf, settings); };
+
+    deserializeTextImpl(
+        column, istr, settings, read_field, FormatSettings::EscapingRule::CSV, try_deserialize_variant, deserialize_variant);
+}
+
 bool SerializationDynamic::tryDeserializeTextCSV(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings & settings) const
 {
     deserializeTextCSV(column, istr, settings);
     return true;
 }
+
+bool SerializationDynamic::tryDeserializeTextCSV2(DB::IColumn & column, DB::ReadBuffer & istr, const DB::FormatSettings & settings) const
+{
+    deserializeTextCSV2(column, istr, settings);
+    return true;
+}
+
 
 void SerializationDynamic::serializeTextEscaped(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
 {

@@ -463,8 +463,17 @@ void SerializationString::serializeTextCSV(const IColumn & column, size_t row_nu
     writeCSVString<>(assert_cast<const ColumnString &>(column).getDataAt(row_num), ostr);
 }
 
+void SerializationString::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const
+{
+    writeCSVString<>(assert_cast<const ColumnString &>(column).getDataAt(row_num), ostr);
+}
 
 void SerializationString::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    read<void>(column, [&](ColumnString::Chars & data) { readCSVStringInto(data, istr, settings.csv); });
+}
+
+void SerializationString::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     read<void>(column, [&](ColumnString::Chars & data) { readCSVStringInto(data, istr, settings.csv); });
 }
@@ -473,6 +482,12 @@ bool SerializationString::tryDeserializeTextCSV(IColumn & column, ReadBuffer & i
 {
     return read<bool>(column, [&](ColumnString::Chars & data) { readCSVStringInto<ColumnString::Chars, false, false>(data, istr, settings.csv); return true; });
 }
+
+bool SerializationString::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    return read<bool>(column, [&](ColumnString::Chars & data) { readCSVStringInto<ColumnString::Chars, false, false>(data, istr, settings.csv); return true; });
+}
+
 
 void SerializationString::serializeTextMarkdown(
     const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const

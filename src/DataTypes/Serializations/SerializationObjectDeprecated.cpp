@@ -128,6 +128,13 @@ void SerializationObjectDeprecated<Parser>::deserializeTextCSV(IColumn & column,
 }
 
 template <typename Parser>
+void SerializationObjectDeprecated<Parser>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    deserializeTextImpl(column, [&](String & s) { readCSVStringInto(s, istr, settings.csv); });
+}
+
+
+template <typename Parser>
 template <typename TSettings>
 void SerializationObjectDeprecated<Parser>::checkSerializationIsSupported(const TSettings & settings) const
 {
@@ -520,6 +527,15 @@ void SerializationObjectDeprecated<Parser>::serializeTextJSON(const IColumn & co
 
 template <typename Parser>
 void SerializationObjectDeprecated<Parser>::serializeTextCSV(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    WriteBufferFromOwnString ostr_str;
+    serializeTextImpl(column, row_num, ostr_str, settings);
+    writeCSVString(ostr_str.str(), ostr);
+}
+
+template <typename Parser>
+void SerializationObjectDeprecated<Parser>::serializeTextCSV2(
+    const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
 {
     WriteBufferFromOwnString ostr_str;
     serializeTextImpl(column, row_num, ostr_str, settings);

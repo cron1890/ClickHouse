@@ -155,8 +155,25 @@ void SerializationNumber<T>::deserializeTextCSV(IColumn & column, ReadBuffer & i
     assert_cast<ColumnVector<T> &>(column).getData().push_back(x);
 }
 
+void SerializationNumber<T>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & /*settings*/) const
+{
+    FieldType x;
+    readCSV(x, istr);
+    assert_cast<ColumnVector<T> &>(column).getData().push_back(x);
+}
+
 template <typename T>
 bool SerializationNumber<T>::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & /*settings*/) const
+{
+    FieldType x;
+    if (!tryReadCSV(x, istr))
+        return false;
+    assert_cast<ColumnVector<T> &>(column).getData().push_back(x);
+    return true;
+}
+
+template <typename T>
+bool SerializationNumber<T>::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & /*settings*/) const
 {
     FieldType x;
     if (!tryReadCSV(x, istr))

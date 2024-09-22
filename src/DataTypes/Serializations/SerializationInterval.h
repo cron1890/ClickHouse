@@ -70,6 +70,8 @@ public:
     void serializeTextQuoted(const IColumn & column, size_t row, WriteBuffer & ostr, const FormatSettings & settings) const override;
     void serializeTextRaw(const IColumn & column, size_t row, WriteBuffer & ostr, const FormatSettings & settings) const override;
 
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+    void serializeTextCSV2(const IColumn & column, size_t row, WriteBuffer & ostr, const FormatSettings & settings) const override;
 private:
     template <typename... Args, std::invocable<const ISerialization *, Args...> Method>
     void dispatch(const Method method, const FormatSettings::IntervalOutputFormat format, Args &&... args) const

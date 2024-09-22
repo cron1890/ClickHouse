@@ -110,6 +110,13 @@ void SerializationDate::serializeTextCSV(const IColumn & column, size_t row_num,
     writeChar('"', ostr);
 }
 
+void SerializationDate::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    writeChar('"', ostr);
+    serializeText(column, row_num, ostr, settings);
+    writeChar('"', ostr);
+}
+
 void SerializationDate::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     DayNum value;
@@ -117,7 +124,23 @@ void SerializationDate::deserializeTextCSV(IColumn & column, ReadBuffer & istr, 
     assert_cast<ColumnUInt16 &>(column).getData().push_back(value);
 }
 
+void SerializationDate::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    DayNum value;
+    readCSV(value, istr, time_zone);
+    assert_cast<ColumnUInt16 &>(column).getData().push_back(value);
+}
+
 bool SerializationDate::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    DayNum value;
+    if (!tryReadCSV(value, istr, time_zone))
+        return false;
+    assert_cast<ColumnUInt16 &>(column).getData().push_back(value);
+    return true;
+}
+
+bool SerializationDate::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     DayNum value;
     if (!tryReadCSV(value, istr, time_zone))

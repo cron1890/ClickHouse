@@ -74,7 +74,8 @@ struct FormatSettings
         CSV,
         JSON,
         XML,
-        Raw
+        Raw,
+        CSV
     };
 
     UInt64 schema_inference_make_columns_nullable = 1;
@@ -181,6 +182,33 @@ struct FormatSettings
         bool try_infer_numbers_from_strings = true;
         bool try_infer_strings_from_quoted_tuples = true;
     } csv{};
+
+    struct CSV2
+    {
+        char delimiter = ',';
+        bool allow_single_quotes = true;
+        bool allow_double_quotes = true;
+        bool serialize_tuple_into_separate_columns = true;
+        bool deserialize_separate_columns_into_tuple = true;
+        bool empty_as_default = false;
+        bool crlf_end_of_line = false;
+        bool allow_cr_end_of_line = false;
+        bool enum_as_number = false;
+        bool arrays_as_nested_csv = false;
+        String null_representation = "\\N";
+        char tuple_delimiter = ',';
+        bool use_best_effort_in_schema_inference = true;
+        UInt64 skip_first_lines = 0;
+        String custom_delimiter;
+        bool try_detect_header = true;
+        bool skip_trailing_empty_lines = false;
+        bool trim_whitespaces = true;
+        bool allow_whitespace_or_tab_as_delimiter = false;
+        bool allow_variable_number_of_columns = false;
+        bool use_default_on_bad_values = false;
+        bool try_infer_numbers_from_strings = true;
+        bool try_infer_strings_from_quoted_tuples = true;
+    } csv2{};
 
     struct HiveText
     {

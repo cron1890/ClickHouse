@@ -33,6 +33,8 @@ FormatSettings::EscapingRule stringToEscapingRule(const String & escaping_rule)
         return FormatSettings::EscapingRule::Quoted;
     else if (escaping_rule == "CSV")
         return FormatSettings::EscapingRule::CSV;
+    else if (escaping_rule == "CSV2")
+        return FormatSettings::EscapingRule::CSV2;
     else if (escaping_rule == "JSON")
         return FormatSettings::EscapingRule::JSON;
     else if (escaping_rule == "XML")

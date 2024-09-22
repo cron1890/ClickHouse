@@ -750,14 +750,29 @@ void SerializationLowCardinality::serializeTextCSV(const IColumn & column, size_
     serializeImpl(column, row_num, &ISerialization::serializeTextCSV, ostr, settings);
 }
 
+void SerializationLowCardinality::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    serializeImpl(column, row_num, &ISerialization::serializeTextCSV2, ostr, settings);
+}
+
 void SerializationLowCardinality::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     deserializeImpl(column, &ISerialization::deserializeTextCSV, istr, settings);
 }
 
+void SerializationLowCardinality::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    deserializeImpl(column, &ISerialization::deserializeTextCSV2, istr, settings);
+}
+
 bool SerializationLowCardinality::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     return tryDeserializeImpl(column, &ISerialization::tryDeserializeTextCSV, istr, settings);
+}
+
+bool SerializationLowCardinality::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    return tryDeserializeImpl(column, &ISerialization::tryDeserializeTextCSV2, istr, settings);
 }
 
 void SerializationLowCardinality::serializeText(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const

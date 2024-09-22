@@ -996,6 +996,16 @@ void SerializationVariant::serializeTextCSV(const IColumn & column, size_t row_n
         variants[global_discr]->serializeTextCSV(col.getVariantByGlobalDiscriminator(global_discr), col.offsetAt(row_num), ostr, settings);
 }
 
+void SerializationVariant::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    const ColumnVariant & col = assert_cast<const ColumnVariant &>(column);
+    auto global_discr = col.globalDiscriminatorAt(row_num);
+    if (global_discr == ColumnVariant::NULL_DISCRIMINATOR)
+        SerializationNullable::serializeNullCSV2(ostr, settings);
+    else
+        variants[global_discr]->serializeTextCSV2(col.getVariantByGlobalDiscriminator(global_discr), col.offsetAt(row_num), ostr, settings);
+}
+
 bool SerializationVariant::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String field;
@@ -1003,11 +1013,26 @@ bool SerializationVariant::tryDeserializeTextCSV(IColumn & column, ReadBuffer & 
     return tryDeserializeTextCSVImpl(column, field, settings);
 }
 
+bool SerializationVariant::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String field;
+    readCSVStringInto<String, true, false>(field, istr, settings.csv);
+    return tryDeserializeTextCSV2Impl(column, field, settings);
+}
+
 void SerializationVariant::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String field;
     readCSVField(field, istr, settings.csv);
     if (!tryDeserializeTextCSVImpl(column, field, settings))
+        throw Exception(ErrorCodes::INCORRECT_DATA, "Cannot parse CSV value of type {} here: {}", variant_name, field);
+}
+
+void SerializationVariant::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String field;
+    readCSV2Field(field, istr, settings.csv);
+    if (!tryDeserializeTextCSV2Impl(column, field, settings))
         throw Exception(ErrorCodes::INCORRECT_DATA, "Cannot parse CSV value of type {} here: {}", variant_name, field);
 }
 
@@ -1021,6 +1046,15 @@ bool SerializationVariant::tryDeserializeTextCSVImpl(DB::IColumn & column, const
     {
         return variant_serialization->tryDeserializeTextCSV(variant_column, buf, settings);
     };
+
+    return tryDeserializeImpl(column, field, check_for_null, try_deserialize_variant);
+}
+
+bool SerializationVariant::tryDeserializeTextCSV2Impl(DB::IColumn & column, const String & field, const DB::FormatSettings & settings) const
+{
+    auto check_for_null = [&](ReadBuffer & buf) { return SerializationNullable::tryDeserializeNullCSV2(buf, settings); };
+    auto try_deserialize_variant = [&](IColumn & variant_column, const SerializationPtr & variant_serialization, ReadBuffer & buf)
+    { return variant_serialization->tryDeserializeTextCSV2(variant_column, buf, settings); };
 
     return tryDeserializeImpl(column, field, check_for_null, try_deserialize_variant);
 }

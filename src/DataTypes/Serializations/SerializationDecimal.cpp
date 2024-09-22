@@ -86,7 +86,25 @@ void SerializationDecimal<T>::deserializeTextCSV(IColumn & column, ReadBuffer & 
 }
 
 template <typename T>
+void SerializationDecimal<T>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    T x;
+    readText(x, istr, true);
+    assert_cast<ColumnType &>(column).getData().push_back(x);
+}
+
+template <typename T>
 bool SerializationDecimal<T>::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    T x;
+    if (!tryReadText(x, istr, true))
+        return false;
+    assert_cast<ColumnType &>(column).getData().push_back(x);
+    return true;
+}
+
+template <typename T>
+bool SerializationDecimal<T>::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     T x;
     if (!tryReadText(x, istr, true))

@@ -31,6 +31,11 @@ protected:
         serializeText(column, row_num, ostr, settings);
     }
 
+    void serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const override
+    {
+        serializeText(column, row_num, ostr, settings);
+    }
+
     void deserializeWholeText(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override
     {
         deserializeText(column, istr, settings, true);
@@ -76,7 +81,17 @@ protected:
         deserializeText(column, istr, settings, false);
     }
 
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override
+    {
+        deserializeText(column, istr, settings, false);
+    }
+
     bool tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override
+    {
+        return tryDeserializeText(column, istr, settings, false);
+    }
+
+    bool tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override
     {
         return tryDeserializeText(column, istr, settings, false);
     }

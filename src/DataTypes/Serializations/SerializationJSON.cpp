@@ -358,7 +358,24 @@ void SerializationJSON<Parser>::serializeTextCSV(const IColumn & column, size_t 
 }
 
 template <typename Parser>
+void SerializationJSON<Parser>::serializeTextCSV2(
+    const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    WriteBufferFromOwnString buf;
+    serializeTextImpl(column, row_num, buf, settings);
+    writeCSVString(buf.str(), ostr);
+}
+
+template <typename Parser>
 void SerializationJSON<Parser>::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String object;
+    readCSVString(object, istr, settings.csv);
+    deserializeTextImpl(column, object, settings);
+}
+
+template <typename Parser>
+void SerializationJSON<Parser>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String object;
     readCSVString(object, istr, settings.csv);

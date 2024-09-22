@@ -398,6 +398,13 @@ void SerializationMap::serializeTextCSV(const IColumn & column, size_t row_num, 
     writeCSV(wb.str(), ostr);
 }
 
+void SerializationMap::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    WriteBufferFromOwnString wb;
+    serializeText(column, row_num, wb, settings);
+    writeCSV(wb.str(), ostr);
+}
+
 void SerializationMap::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
@@ -406,7 +413,24 @@ void SerializationMap::deserializeTextCSV(IColumn & column, ReadBuffer & istr, c
     deserializeText(column, rb, settings, true);
 }
 
+void SerializationMap::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String s;
+    readCSV(s, istr, settings.csv);
+    ReadBufferFromString rb(s);
+    deserializeText(column, rb, settings, true);
+}
+
 bool SerializationMap::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String s;
+    if (!tryReadCSV(s, istr, settings.csv))
+        return false;
+    ReadBufferFromString rb(s);
+    return tryDeserializeText(column, rb, settings, true);
+}
+
+bool SerializationMap::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
     if (!tryReadCSV(s, istr, settings.csv))

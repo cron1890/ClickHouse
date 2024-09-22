@@ -27,6 +27,9 @@ public:
     void deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
     bool tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
 
+    void deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+    bool tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const override;
+
     /** Format is platform-dependent. */
     void serializeBinary(const Field & field, WriteBuffer & ostr, const FormatSettings &) const override;
     void deserializeBinary(Field & field, ReadBuffer & istr, const FormatSettings &) const override;

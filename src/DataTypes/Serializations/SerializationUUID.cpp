@@ -119,6 +119,13 @@ void SerializationUUID::serializeTextCSV(const IColumn & column, size_t row_num,
     writeChar('"', ostr);
 }
 
+void SerializationUUID::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    writeChar('"', ostr);
+    serializeText(column, row_num, ostr, settings);
+    writeChar('"', ostr);
+}
+
 void SerializationUUID::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     UUID value;
@@ -126,7 +133,23 @@ void SerializationUUID::deserializeTextCSV(IColumn & column, ReadBuffer & istr, 
     assert_cast<ColumnUUID &>(column).getData().push_back(value);
 }
 
+void SerializationUUID::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    UUID value;
+    readCSV(value, istr);
+    assert_cast<ColumnUUID &>(column).getData().push_back(value);
+}
+
 bool SerializationUUID::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
+{
+    UUID value;
+    if (!tryReadCSV(value, istr))
+        return false;
+    assert_cast<ColumnUUID &>(column).getData().push_back(value);
+    return true;
+}
+
+bool SerializationUUID::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     UUID value;
     if (!tryReadCSV(value, istr))

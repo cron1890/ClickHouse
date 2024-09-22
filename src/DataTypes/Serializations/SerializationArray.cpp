@@ -691,6 +691,13 @@ void SerializationArray::serializeTextCSV(const IColumn & column, size_t row_num
     writeCSV(wb.str(), ostr);
 }
 
+void SerializationArray::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
+{
+    /// There is no good way to serialize an array in CSV. Therefore, we serialize it into a string, and then write the resulting string in CSV.
+    WriteBufferFromOwnString wb;
+    serializeText(column, row_num, wb, settings);
+    writeCSV(wb.str(), ostr);
+}
 
 void SerializationArray::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
@@ -722,6 +729,36 @@ void SerializationArray::deserializeTextCSV(IColumn & column, ReadBuffer & istr,
     }
 }
 
+void SerializationArray::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String s;
+    readCSV(s, istr, settings.csv);
+    ReadBufferFromString rb(s);
+
+    if (settings.csv.arrays_as_nested_csv)
+    {
+        deserializeTextImpl(column, rb,
+            [&](IColumn & nested_column)
+            {
+                if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(nested_column))
+                    SerializationNullable::deserializeNullAsDefaultOrNestedTextCSV(nested_column, rb, settings, nested);
+                else
+                    nested->deserializeTextCSV2(nested_column, rb, settings);
+            }, true);
+    }
+    else
+    {
+        deserializeTextImpl(column, rb,
+            [&](IColumn & nested_column)
+            {
+                if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(nested_column))
+                    SerializationNullable::deserializeNullAsDefaultOrNestedTextQuoted(nested_column, rb, settings, nested);
+                else
+                    nested->deserializeTextQuoted(nested_column, rb, settings);
+            }, true);
+    }
+}
+
 bool SerializationArray::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
@@ -736,6 +773,37 @@ bool SerializationArray::tryDeserializeTextCSV(IColumn & column, ReadBuffer & is
             if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(nested_column))
                 return SerializationNullable::tryDeserializeNullAsDefaultOrNestedTextCSV(nested_column, rb, settings, nested);
             return nested->tryDeserializeTextCSV(nested_column, rb, settings);
+        };
+
+        return deserializeTextImpl<bool>(column, rb, read_nested, true);
+    }
+    else
+    {
+        auto read_nested = [&](IColumn & nested_column)
+        {
+            if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(nested_column))
+                return SerializationNullable::tryDeserializeNullAsDefaultOrNestedTextQuoted(nested_column, rb, settings, nested);
+            return nested->tryDeserializeTextQuoted(nested_column, rb, settings);
+        };
+
+        return deserializeTextImpl<bool>(column, rb, read_nested, true);
+    }
+}
+
+bool SerializationArray::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
+{
+    String s;
+    if (!tryReadCSV(s, istr, settings.csv))
+        return false;
+    ReadBufferFromString rb(s);
+
+    if (settings.csv.arrays_as_nested_csv)
+    {
+        auto read_nested = [&](IColumn & nested_column)
+        {
+            if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(nested_column))
+                return SerializationNullable::tryDeserializeNullAsDefaultOrNestedTextCSV(nested_column, rb, settings, nested);
+            return nested->tryDeserializeTextCSV2(nested_column, rb, settings);
         };
 
         return deserializeTextImpl<bool>(column, rb, read_nested, true);
