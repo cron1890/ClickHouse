@@ -155,6 +155,7 @@ void SerializationNumber<T>::deserializeTextCSV(IColumn & column, ReadBuffer & i
     assert_cast<ColumnVector<T> &>(column).getData().push_back(x);
 }
 
+template<typename T>
 void SerializationNumber<T>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & /*settings*/) const
 {
     FieldType x;

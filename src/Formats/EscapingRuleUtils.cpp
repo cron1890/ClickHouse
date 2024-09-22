@@ -57,6 +57,8 @@ String escapingRuleToString(FormatSettings::EscapingRule escaping_rule)
             return "Quoted";
         case FormatSettings::EscapingRule::CSV:
             return "CSV";
+        case FormatSettings::EscapingRule::CSV2:
+            return "CSV2";
         case FormatSettings::EscapingRule::JSON:
             return "JSON";
         case FormatSettings::EscapingRule::XML:
@@ -83,6 +85,9 @@ void skipFieldByEscapingRule(ReadBuffer & buf, FormatSettings::EscapingRule esca
             readQuotedFieldInto(out, buf);
             break;
         case FormatSettings::EscapingRule::CSV:
+            readCSVStringInto(out, buf, format_settings.csv);
+            break;
+        case FormatSettings::EscapingRule::CSV2:
             readCSVStringInto(out, buf, format_settings.csv);
             break;
         case FormatSettings::EscapingRule::JSON:
@@ -126,6 +131,12 @@ bool deserializeFieldByEscapingRule(
             else
                 serialization->deserializeTextCSV(column, buf, format_settings);
             break;
+        case FormatSettings::EscapingRule::CSV2:
+            if (parse_as_nullable)
+                read = SerializationNullable::deserializeNullAsDefaultOrNestedTextCSV(column, buf, format_settings, serialization);
+            else
+                serialization->deserializeTextCSV(column, buf, format_settings);
+            break;
         case FormatSettings::EscapingRule::JSON:
             if (parse_as_nullable)
                 read = SerializationNullable::deserializeNullAsDefaultOrNestedTextJSON(column, buf, format_settings, serialization);
@@ -164,6 +175,9 @@ void serializeFieldByEscapingRule(
         case FormatSettings::EscapingRule::CSV:
             serialization.serializeTextCSV(column, row_num, out, format_settings);
             break;
+        case FormatSettings::EscapingRule::CSV2:
+            serialization.serializeTextCSV(column, row_num, out, format_settings);
+            break;
         case FormatSettings::EscapingRule::JSON:
             serialization.serializeTextJSON(column, row_num, out, format_settings);
             break;
@@ -193,6 +207,9 @@ void writeStringByEscapingRule(
             writeString(value, out);
             break;
         case FormatSettings::EscapingRule::CSV:
+            writeCSVString(value, out);
+            break;
+        case FormatSettings::EscapingRule::CSV2:
             writeCSVString(value, out);
             break;
         case FormatSettings::EscapingRule::Escaped:
@@ -228,6 +245,12 @@ String readByEscapingRule(ReadBuffer & buf, FormatSettings::EscapingRule escapin
             readString(result, buf);
             break;
         case FormatSettings::EscapingRule::CSV:
+            if constexpr (read_string)
+                readCSVString(result, buf, format_settings.csv);
+            else
+                readCSVField(result, buf, format_settings.csv);
+            break;
+        case FormatSettings::EscapingRule::CSV2:
             if constexpr (read_string)
                 readCSVString(result, buf, format_settings.csv);
             else

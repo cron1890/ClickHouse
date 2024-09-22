@@ -70,10 +70,10 @@ CSV2RowInputFormat::CSV2RowInputFormat(
           with_types_,
           format_settings_,
           std::move(format_reader_),
-          format_settings_.csv2.try_detect_header)
+          format_settings_.csv.try_detect_header)
     , buf(std::move(in_))
 {
-    checkBadDelimiter(format_settings_.csv2.delimiter, format_settings_.csv2.allow_whitespace_or_tab_as_delimiter);
+    checkBadDelimiter(format_settings_.csv.delimiter, format_settings_.csv.allow_whitespace_or_tab_as_delimiter);
 }
 
 CSV2RowInputFormat::CSV2RowInputFormat(
@@ -92,10 +92,10 @@ CSV2RowInputFormat::CSV2RowInputFormat(
           with_types_,
           format_settings_,
           std::make_unique<CSV2FormatReader>(*in_, format_settings_),
-          format_settings_.csv2.try_detect_header)
+          format_settings_.csv.try_detect_header)
     , buf(std::move(in_))
 {
-    checkBadDelimiter(format_settings_.csv2.delimiter, format_settings_.csv2.allow_whitespace_or_tab_as_delimiter);
+    checkBadDelimiter(format_settings_.csv.delimiter, format_settings_.csv.allow_whitespace_or_tab_as_delimiter);
 }
 
 void CSV2RowInputFormat::syncAfterError()
@@ -167,7 +167,7 @@ void CSV2FormatReader::skipRow()
             else if (*pos == '\r')
             {
                 ++istr.position();
-                if (format_settings.csv2.allow_cr_end_of_line)
+                if (format_settings.csv.allow_cr_end_of_line)
                     return;
                 else if (!istr.eof() && *pos == '\n')
                 {
@@ -222,14 +222,14 @@ CSV2FormatReader::CSV2FormatReader(PeekableReadBuffer & buf_, const FormatSettin
 
 void CSV2FormatReader::skipFieldDelimiter()
 {
-    skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
-    assertChar(format_settings.csv2.delimiter, *buf);
+    skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
+    assertChar(format_settings.csv.delimiter, *buf);
 }
 
 template <bool read_string>
 String CSV2FormatReader::readCSV2FieldIntoString()
 {
-    if (format_settings.csv2.trim_whitespaces) [[likely]]
+    if (format_settings.csv.trim_whitespaces) [[likely]]
         skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
 
     String field;
@@ -242,27 +242,27 @@ String CSV2FormatReader::readCSV2FieldIntoString()
 
 void CSV2FormatReader::skipField()
 {
-    skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+    skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
     NullOutput out;
-    readCSV2StringInto(out, *buf, format_settings.csv2);
+    readCSV2StringInto(out, *buf, format_settings.csv);
 }
 
 void CSV2FormatReader::skipRowEndDelimiter()
 {
-    skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+    skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
 
     if (buf->eof())
         return;
 
     /// we support the extra delimiter at the end of the line
-    if (*buf->position() == format_settings.csv2.delimiter)
+    if (*buf->position() == format_settings.csv.delimiter)
         ++buf->position();
 
-    skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+    skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
     if (buf->eof())
         return;
 
-    skipEndOfLine(*buf, format_settings.csv2.allow_cr_end_of_line);
+    skipEndOfLine(*buf, format_settings.csv.allow_cr_end_of_line);
 }
 
 void CSV2FormatReader::skipHeaderRow()
@@ -270,8 +270,8 @@ void CSV2FormatReader::skipHeaderRow()
     do
     {
         skipField();
-        skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
-    } while (checkChar(format_settings.csv2.delimiter, *buf));
+        skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
+    } while (checkChar(format_settings.csv.delimiter, *buf));
 
     skipRowEndDelimiter();
 }
@@ -283,8 +283,8 @@ std::vector<String> CSV2FormatReader::readRowImpl()
     do
     {
         fields.push_back(readCSV2FieldIntoString<is_header>());
-        skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
-    } while (checkChar(format_settings.csv2.delimiter, *buf));
+        skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
+    } while (checkChar(format_settings.csv.delimiter, *buf));
 
     skipRowEndDelimiter();
     return fields;
@@ -292,11 +292,11 @@ std::vector<String> CSV2FormatReader::readRowImpl()
 
 bool CSV2FormatReader::parseFieldDelimiterWithDiagnosticInfo(WriteBuffer & out)
 {
-    const char delimiter = format_settings.csv2.delimiter;
+    const char delimiter = format_settings.csv.delimiter;
 
     try
     {
-        skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+        skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
         assertChar(delimiter, *buf);
     }
     catch (const DB::Exception &)
@@ -322,16 +322,16 @@ bool CSV2FormatReader::parseFieldDelimiterWithDiagnosticInfo(WriteBuffer & out)
 
 bool CSV2FormatReader::parseRowEndWithDiagnosticInfo(WriteBuffer & out)
 {
-    skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+    skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
 
     if (buf->eof())
         return true;
 
     /// we support the extra delimiter at the end of the line
-    if (*buf->position() == format_settings.csv2.delimiter)
+    if (*buf->position() == format_settings.csv.delimiter)
     {
         ++buf->position();
-        skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+        skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
         if (buf->eof())
             return true;
     }
@@ -347,13 +347,13 @@ bool CSV2FormatReader::parseRowEndWithDiagnosticInfo(WriteBuffer & out)
         return false;
     }
 
-    skipEndOfLine(*buf, format_settings.csv2.allow_cr_end_of_line);
+    skipEndOfLine(*buf, format_settings.csv.allow_cr_end_of_line);
     return true;
 }
 
 bool CSV2FormatReader::allowVariableNumberOfColumns() const
 {
-    return format_settings.csv2.allow_variable_number_of_columns;
+    return format_settings.csv.allow_variable_number_of_columns;
 }
 
 bool CSV2FormatReader::readField(
@@ -363,15 +363,15 @@ bool CSV2FormatReader::readField(
     bool is_last_file_column,
     const String & /*column_name*/)
 {
-    if (format_settings.csv2.trim_whitespaces || !isStringOrFixedString(removeNullable(type))) [[likely]]
-        skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+    if (format_settings.csv.trim_whitespaces || !isStringOrFixedString(removeNullable(type))) [[likely]]
+        skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
 
-    const bool at_delimiter = !buf->eof() && *buf->position() == format_settings.csv2.delimiter;
+    const bool at_delimiter = !buf->eof() && *buf->position() == format_settings.csv.delimiter;
     const bool at_last_column_line_end = is_last_file_column && (buf->eof() || *buf->position() == '\n' || *buf->position() == '\r');
 
     /// Note: Tuples are serialized in CSV2 as separate columns, but with empty_as_default or null_as_default
     /// only one empty or NULL column will be expected
-    if (format_settings.csv2.empty_as_default && (at_delimiter || at_last_column_line_end))
+    if (format_settings.csv.empty_as_default && (at_delimiter || at_last_column_line_end))
     {
         /// Treat empty unquoted column value as default value, if
         /// specified in the settings. Tuple columns might seem
@@ -383,7 +383,7 @@ bool CSV2FormatReader::readField(
         return false;
     }
 
-    if (format_settings.csv2.use_default_on_bad_values)
+    if (format_settings.csv.use_default_on_bad_values)
         return readFieldOrDefault(column, type, serialization);
     return readFieldImpl(*buf, column, type, serialization);
 }
@@ -434,7 +434,7 @@ bool CSV2FormatReader::readFieldOrDefault(DB::IColumn & column, const DB::DataTy
 
 void CSV2FormatReader::skipPrefixBeforeHeader()
 {
-    for (size_t i = 0; i != format_settings.csv2.skip_first_lines; ++i)
+    for (size_t i = 0; i != format_settings.csv.skip_first_lines; ++i)
         readRow();
 }
 
@@ -446,7 +446,7 @@ void CSV2FormatReader::setReadBuffer(ReadBuffer & in_)
 
 bool CSV2FormatReader::checkForSuffix()
 {
-    if (!format_settings.csv2.skip_trailing_empty_lines)
+    if (!format_settings.csv.skip_trailing_empty_lines)
         return buf->eof();
 
     PeekableReadBufferCheckpoint checkpoint(*buf);
@@ -461,7 +461,7 @@ bool CSV2FormatReader::checkForSuffix()
 
 bool CSV2FormatReader::checkForEndOfRow()
 {
-    skipWhitespacesAndTabs(*buf, format_settings.csv2.allow_whitespace_or_tab_as_delimiter);
+    skipWhitespacesAndTabs(*buf, format_settings.csv.allow_whitespace_or_tab_as_delimiter);
     return buf->eof() || *buf->position() == '\n' || *buf->position() == '\r';
 }
 
@@ -473,7 +473,7 @@ CSV2SchemaReader::CSV2SchemaReader(ReadBuffer & in_, bool with_names_, bool with
           with_types_,
           &reader,
           getDefaultDataTypeForEscapingRule(FormatSettings::EscapingRule::CSV2),
-          format_settings_.csv2.try_detect_header)
+          format_settings_.csv.try_detect_header)
     , buf(in_)
     , reader(buf, format_settings_)
 {

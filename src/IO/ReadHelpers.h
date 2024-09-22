@@ -689,7 +689,7 @@ template <typename Vector, typename ReturnType = void>
 ReturnType readJSONStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::JSON & settings);
 
 template <typename Vector, bool include_quotes = false, bool allow_throw = true>
-void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
+void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
 
 template <typename Vector>
 bool tryReadJSONStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::JSON & settings)

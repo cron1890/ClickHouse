@@ -75,7 +75,7 @@ struct FormatSettings
         JSON,
         XML,
         Raw,
-        CSV
+        CSV2
     };
 
     UInt64 schema_inference_make_columns_nullable = 1;

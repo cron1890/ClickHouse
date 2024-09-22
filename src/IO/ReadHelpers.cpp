@@ -1245,7 +1245,7 @@ void readCSVString(String & s, ReadBuffer & buf, const FormatSettings::CSV & set
     readCSVStringInto(s, buf, settings);
 }
 
-void readCSV2String(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings)
+void readCSV2String(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings)
 {
     s.clear();
     readCSV2StringInto(s, buf, settings);
@@ -1372,7 +1372,7 @@ String readCSVStringWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const Fo
 }
 
 String readCSV2StringWithTwoPossibleDelimiters(
-    PeekableReadBuffer & buf, const FormatSettings::CSV2 & settings, const String & first_delimiter, const String & second_delimiter)
+    PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter)
 {
     String res;
 
