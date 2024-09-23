@@ -648,7 +648,7 @@ void readCSV2String(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & s
 
 /// Differ from readCSVString in that it doesn't remove quotes around field if any.
 void readCSVField(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
-void readCSV2Field(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
+void readCSV2Field(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
 
 /// Read string in CSV format until the first occurrence of first_delimiter or second_delimiter.
 /// Similar to readCSVString if string is in quotes, we read only data in quotes.
@@ -657,7 +657,7 @@ String readCSV2StringWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const F
 
 /// Same as above but includes quotes in the result if any.
 String readCSVFieldWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter);
-String readCSV2FieldWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter);
+String readCSV2FieldWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const FormatSettings::CSV2 & settings, const String & first_delimiter, const String & second_delimiter);
 
 /// Read and append result to array of characters.
 template <typename Vector>
@@ -689,7 +689,7 @@ template <typename Vector, typename ReturnType = void>
 ReturnType readJSONStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::JSON & settings);
 
 template <typename Vector, bool include_quotes = false, bool allow_throw = true>
-void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
+void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
 
 template <typename Vector>
 bool tryReadJSONStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::JSON & settings)
@@ -1563,9 +1563,77 @@ inline ReturnType readCSVSimple(T & x, ReadBuffer & buf)
     return ReturnType(true);
 }
 
+/// CSV2 for numbers: quotes are optional, no special escaping rules.
+template <typename T, typename ReturnType = void>
+inline ReturnType readCSV2Simple(T & x, ReadBuffer & buf)
+{
+    static constexpr bool throw_exception = std::is_same_v<ReturnType, void>;
+
+    if (buf.eof()) [[unlikely]]
+    {
+        if constexpr (throw_exception)
+            throwReadAfterEOF();
+        return ReturnType(false);
+    }
+
+    char maybe_quote = *buf.position();
+
+    if (maybe_quote == '\'' || maybe_quote == '\"')
+        ++buf.position();
+
+    if constexpr (throw_exception)
+        readText(x, buf);
+    else if (!tryReadText(x, buf))
+        return ReturnType(false);
+
+    if (maybe_quote == '\'' || maybe_quote == '\"')
+    {
+        if constexpr (throw_exception)
+            assertChar(maybe_quote, buf);
+        else if (!checkChar(maybe_quote, buf))
+            return ReturnType(false);
+    }
+
+    return ReturnType(true);
+}
+
 // standalone overload for dates: to avoid instantiating DateLUTs while parsing other types
 template <typename T, typename ReturnType = void>
 inline ReturnType readCSVSimple(T & x, ReadBuffer & buf, const DateLUTImpl & time_zone)
+{
+    static constexpr bool throw_exception = std::is_same_v<ReturnType, void>;
+
+    if (buf.eof()) [[unlikely]]
+    {
+        if constexpr (throw_exception)
+            throwReadAfterEOF();
+        return ReturnType(false);
+    }
+
+    char maybe_quote = *buf.position();
+
+    if (maybe_quote == '\'' || maybe_quote == '\"')
+        ++buf.position();
+
+    if constexpr (throw_exception)
+        readText(x, buf, time_zone);
+    else if (!tryReadText(x, buf, time_zone))
+        return ReturnType(false);
+
+    if (maybe_quote == '\'' || maybe_quote == '\"')
+    {
+        if constexpr (throw_exception)
+            assertChar(maybe_quote, buf);
+        else if (!checkChar(maybe_quote, buf))
+            return ReturnType(false);
+    }
+
+    return ReturnType(true);
+}
+
+// standalone overload for dates: to avoid instantiating DateLUTs while parsing other types
+template <typename T, typename ReturnType = void>
+inline ReturnType readCSV2Simple(T & x, ReadBuffer & buf, const DateLUTImpl & time_zone)
 {
     static constexpr bool throw_exception = std::is_same_v<ReturnType, void>;
 
@@ -1606,9 +1674,24 @@ inline void readCSV(T & x, ReadBuffer & buf)
 
 template <typename T>
 requires is_arithmetic_v<T>
+inline void readCSV2(T & x, ReadBuffer & buf)
+{
+    readCSV2Simple(x, buf);
+}
+
+
+template <typename T>
+requires is_arithmetic_v<T>
 inline bool tryReadCSV(T & x, ReadBuffer & buf)
 {
     return readCSVSimple<T, bool>(x, buf);
+}
+
+template <typename T>
+requires is_arithmetic_v<T>
+inline bool tryReadCSV2(T & x, ReadBuffer & buf)
+{
+    return readCSV2Simple<T, bool>(x, buf);
 }
 
 inline void readCSV(String & x, ReadBuffer & buf, const FormatSettings::CSV & settings) { readCSVString(x, buf, settings); }
@@ -1618,6 +1701,15 @@ inline bool tryReadCSV(String & x, ReadBuffer & buf, const FormatSettings::CSV &
     readCSVStringInto<String, false, false>(x, buf, settings);
     return true;
 }
+
+inline void readCSV2(String & x, ReadBuffer & buf, const FormatSettings::CSV2 & settings) { readCSV2String(x, buf, settings); }
+inline bool tryReadCSV2(String & x, ReadBuffer & buf, const FormatSettings::CSV2 & settings)
+{
+    x.clear();
+    readCSV2StringInto<String, false, false>(x, buf, settings);
+    return true;
+}
+
 
 inline void readCSV(LocalDate & x, ReadBuffer & buf) { readCSVSimple(x, buf); }
 inline bool tryReadCSV(LocalDate & x, ReadBuffer & buf) { return readCSVSimple<LocalDate, bool>(x, buf); }
@@ -1650,6 +1742,40 @@ inline bool tryReadCSV(UInt256 & x, ReadBuffer & buf) { return readCSVSimple<UIn
 
 inline void readCSV(Int256 & x, ReadBuffer & buf) { readCSVSimple(x, buf); }
 inline bool tryReadCSV(Int256 & x, ReadBuffer & buf) { return readCSVSimple<Int256, bool>(x, buf); }
+
+
+inline void readCSV2(LocalDate & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(LocalDate & x, ReadBuffer & buf) { return readCSV2Simple<LocalDate, bool>(x, buf); }
+
+inline void readCSV2(DayNum & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(DayNum & x, ReadBuffer & buf) { return readCSV2Simple<DayNum, bool>(x, buf); }
+inline void readCSV2(DayNum & x, ReadBuffer & buf, const DateLUTImpl & time_zone) { readCSV2Simple(x, buf, time_zone); }
+inline bool tryReadCSV2(DayNum & x, ReadBuffer & buf, const DateLUTImpl & time_zone) { return readCSV2Simple<DayNum, bool>(x, buf, time_zone); }
+
+inline void readCSV2(LocalDateTime & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(LocalDateTime & x, ReadBuffer & buf) { return readCSV2Simple<LocalDateTime, bool>(x, buf); }
+
+inline void readCSV2(UUID & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(UUID & x, ReadBuffer & buf) { return readCSV2Simple<UUID, bool>(x, buf); }
+
+inline void readCSV2(IPv4 & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(IPv4 & x, ReadBuffer & buf) { return readCSV2Simple<IPv4, bool>(x, buf); }
+
+inline void readCSV2(IPv6 & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(IPv6 & x, ReadBuffer & buf) { return readCSV2Simple<IPv6, bool>(x, buf); }
+
+inline void readCSV2(UInt128 & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(UInt128 & x, ReadBuffer & buf) { return readCSV2Simple<UInt128, bool>(x, buf); }
+
+inline void readCSV2(Int128 & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(Int128 & x, ReadBuffer & buf) { return readCSV2Simple<Int128, bool>(x, buf); }
+
+inline void readCSV2(UInt256 & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(UInt256 & x, ReadBuffer & buf) { return readCSV2Simple<UInt256, bool>(x, buf); }
+
+inline void readCSV2(Int256 & x, ReadBuffer & buf) { readCSV2Simple(x, buf); }
+inline bool tryReadCSV2(Int256 & x, ReadBuffer & buf) { return readCSV2Simple<Int256, bool>(x, buf); }
+
 
 template <typename T>
 void readBinary(std::vector<T> & x, ReadBuffer & buf)

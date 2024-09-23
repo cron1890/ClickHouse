@@ -572,12 +572,12 @@ void SerializationTuple::serializeTextCSV(const IColumn & column, size_t row_num
 
 void SerializationTuple::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
 {
-    if (settings.csv.serialize_tuple_into_separate_columns)
+    if (settings.csv2.serialize_tuple_into_separate_columns)
     {
         for (size_t i = 0; i < elems.size(); ++i)
         {
             if (i != 0)
-                writeChar(settings.csv.tuple_delimiter, ostr);
+                writeChar(settings.csv2.tuple_delimiter, ostr);
             elems[i]->serializeTextCSV2(extractElementColumn(column, i), row_num, ostr, settings);
         }
     }
@@ -625,7 +625,7 @@ void SerializationTuple::deserializeTextCSV(IColumn & column, ReadBuffer & istr,
 
 void SerializationTuple::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    if (settings.csv.deserialize_separate_columns_into_tuple)
+    if (settings.csv2.deserialize_separate_columns_into_tuple)
     {
         addElementSafe<void>(elems.size(), column, [&]
         {
@@ -635,7 +635,7 @@ void SerializationTuple::deserializeTextCSV2(IColumn & column, ReadBuffer & istr
                 if (i != 0)
                 {
                     skipWhitespaceIfAny(istr);
-                    assertChar(settings.csv.tuple_delimiter, istr);
+                    assertChar(settings.csv2.tuple_delimiter, istr);
                     skipWhitespaceIfAny(istr);
                 }
 
@@ -651,7 +651,7 @@ void SerializationTuple::deserializeTextCSV2(IColumn & column, ReadBuffer & istr
     else
     {
         String s;
-        readCSV(s, istr, settings.csv);
+        readCSV2(s, istr, settings.csv2);
         ReadBufferFromString rb(s);
         deserializeText(column, rb, settings, true);
     }
@@ -702,7 +702,7 @@ bool SerializationTuple::tryDeserializeTextCSV(IColumn & column, ReadBuffer & is
 
 bool SerializationTuple::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    if (settings.csv.deserialize_separate_columns_into_tuple)
+    if (settings.csv2.deserialize_separate_columns_into_tuple)
     {
         return addElementSafe<bool>(elems.size(), column, [&]
         {
@@ -712,7 +712,7 @@ bool SerializationTuple::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & i
                 if (i != 0)
                 {
                 skipWhitespaceIfAny(istr);
-                if (!checkChar(settings.csv.tuple_delimiter, istr))
+                if (!checkChar(settings.csv2.tuple_delimiter, istr))
                     return false;
                 skipWhitespaceIfAny(istr);
                 }
@@ -720,7 +720,7 @@ bool SerializationTuple::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & i
                 auto & element_column = extractElementColumn(column, i);
                 if (settings.null_as_default && !isColumnNullableOrLowCardinalityNullable(element_column))
                 {
-                if (!SerializationNullable::tryDeserializeNullAsDefaultOrNestedTextCSV(element_column, istr, settings, elems[i]))
+                if (!SerializationNullable::tryDeserializeNullAsDefaultOrNestedTextCSV2(element_column, istr, settings, elems[i]))
                     return false;
                 }
                 else
@@ -736,7 +736,7 @@ bool SerializationTuple::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & i
     else
     {
         String s;
-        if (!tryReadCSV(s, istr, settings.csv))
+        if (!tryReadCSV2(s, istr, settings.csv2))
             return false;
         ReadBufferFromString rb(s);
         return tryDeserializeText(column, rb, settings, true);

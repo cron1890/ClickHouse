@@ -378,7 +378,7 @@ template <typename Parser>
 void SerializationJSON<Parser>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String object;
-    readCSVString(object, istr, settings.csv);
+    readCSV2String(object, istr, settings.csv2);
     deserializeTextImpl(column, object, settings);
 }
 

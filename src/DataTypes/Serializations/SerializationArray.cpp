@@ -693,10 +693,10 @@ void SerializationArray::serializeTextCSV(const IColumn & column, size_t row_num
 
 void SerializationArray::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
 {
-    /// There is no good way to serialize an array in CSV. Therefore, we serialize it into a string, and then write the resulting string in CSV.
+    /// There is no good way to serialize an array in CSV2. Therefore, we serialize it into a string, and then write the resulting string in CSV.
     WriteBufferFromOwnString wb;
     serializeText(column, row_num, wb, settings);
-    writeCSV(wb.str(), ostr);
+    writeCSV2(wb.str(), ostr);
 }
 
 void SerializationArray::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
@@ -732,10 +732,10 @@ void SerializationArray::deserializeTextCSV(IColumn & column, ReadBuffer & istr,
 void SerializationArray::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
-    readCSV(s, istr, settings.csv);
+    readCSV2(s, istr, settings.csv2);
     ReadBufferFromString rb(s);
 
-    if (settings.csv.arrays_as_nested_csv)
+    if (settings.csv2.arrays_as_nested_csv)
     {
         deserializeTextImpl(column, rb,
             [&](IColumn & nested_column)
@@ -793,11 +793,11 @@ bool SerializationArray::tryDeserializeTextCSV(IColumn & column, ReadBuffer & is
 bool SerializationArray::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
-    if (!tryReadCSV(s, istr, settings.csv))
+    if (!tryReadCSV2(s, istr, settings.csv2))
         return false;
     ReadBufferFromString rb(s);
 
-    if (settings.csv.arrays_as_nested_csv)
+    if (settings.csv2.arrays_as_nested_csv)
     {
         auto read_nested = [&](IColumn & nested_column)
         {

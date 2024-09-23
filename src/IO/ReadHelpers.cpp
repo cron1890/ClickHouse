@@ -1058,7 +1058,7 @@ void readCSVStringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV &
 }
 
 template <typename Vector, bool include_quotes, bool allow_throw>
-void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV & settings)
+void readCSV2StringInto(Vector & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings)
 {
     /// Empty string
     if (buf.eof())
@@ -1245,7 +1245,7 @@ void readCSVString(String & s, ReadBuffer & buf, const FormatSettings::CSV & set
     readCSVStringInto(s, buf, settings);
 }
 
-void readCSV2String(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings)
+void readCSV2String(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings)
 {
     s.clear();
     readCSV2StringInto(s, buf, settings);
@@ -1257,10 +1257,10 @@ void readCSVField(String & s, ReadBuffer & buf, const FormatSettings::CSV & sett
     readCSVStringInto<String, true>(s, buf, settings);
 }
 
-void readCSV2Field(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings)
+void readCSV2Field(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings)
 {
     s.clear();
-    readCSVStringInto<String, true>(s, buf, settings);
+    readCSV2StringInto<String, true>(s, buf, settings);
 }
 
 void readCSVWithTwoPossibleDelimitersImpl(String & s, PeekableReadBuffer & buf, const String & first_delimiter, const String & second_delimiter)
@@ -1372,7 +1372,7 @@ String readCSVStringWithTwoPossibleDelimiters(PeekableReadBuffer & buf, const Fo
 }
 
 String readCSV2StringWithTwoPossibleDelimiters(
-    PeekableReadBuffer & buf, const FormatSettings::CSV & settings, const String & first_delimiter, const String & second_delimiter)
+    PeekableReadBuffer & buf, const FormatSettings::CSV2 & settings, const String & first_delimiter, const String & second_delimiter)
 {
     String res;
 
@@ -1420,11 +1420,11 @@ template void readCSVStringInto<String, false, false>(String & s, ReadBuffer & b
 template void readCSVStringInto<String, true, false>(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
 template void readCSVStringInto<PaddedPODArray<UInt8>, false, false>(PaddedPODArray<UInt8> & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
 
-template void readCSV2StringInto<PaddedPODArray<UInt8>>(PaddedPODArray<UInt8> & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
-template void readCSV2StringInto<NullOutput>(NullOutput & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
-template void readCSV2StringInto<String, false, false>(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
-template void readCSV2StringInto<String, true, false>(String & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
-template void readCSV2StringInto<PaddedPODArray<UInt8>, false, false>(PaddedPODArray<UInt8> & s, ReadBuffer & buf, const FormatSettings::CSV & settings);
+template void readCSV2StringInto<PaddedPODArray<UInt8>>(PaddedPODArray<UInt8> & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
+template void readCSV2StringInto<NullOutput>(NullOutput & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
+template void readCSV2StringInto<String, false, false>(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
+template void readCSV2StringInto<String, true, false>(String & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
+template void readCSV2StringInto<PaddedPODArray<UInt8>, false, false>(PaddedPODArray<UInt8> & s, ReadBuffer & buf, const FormatSettings::CSV2 & settings);
 
 
 template <typename Vector, typename ReturnType>

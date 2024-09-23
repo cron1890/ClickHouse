@@ -475,7 +475,7 @@ void SerializationString::deserializeTextCSV(IColumn & column, ReadBuffer & istr
 
 void SerializationString::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    read<void>(column, [&](ColumnString::Chars & data) { readCSVStringInto(data, istr, settings.csv); });
+    read<void>(column, [&](ColumnString::Chars & data) { readCSV2StringInto(data, istr, settings.csv2); });
 }
 
 bool SerializationString::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
@@ -485,7 +485,7 @@ bool SerializationString::tryDeserializeTextCSV(IColumn & column, ReadBuffer & i
 
 bool SerializationString::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    return read<bool>(column, [&](ColumnString::Chars & data) { readCSVStringInto<ColumnString::Chars, false, false>(data, istr, settings.csv); return true; });
+    return read<bool>(column, [&](ColumnString::Chars & data) { readCSV2StringInto<ColumnString::Chars, false, false>(data, istr, settings.csv2); return true; });
 }
 
 

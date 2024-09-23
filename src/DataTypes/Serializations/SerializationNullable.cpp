@@ -657,7 +657,7 @@ void SerializationNullable::serializeTextCSV2(const IColumn & column, size_t row
     const ColumnNullable & col = assert_cast<const ColumnNullable &>(column);
 
     if (col.isNullAt(row_num))
-        writeString(settings.csv.null_representation, ostr);
+        writeString(settings.csv2.null_representation, ostr);
     else
         nested->serializeTextCSV2(col.getNestedColumn(), row_num, ostr, settings);
 }
@@ -669,7 +669,7 @@ void SerializationNullable::serializeNullCSV(DB::WriteBuffer & ostr, const DB::F
 
 void SerializationNullable::serializeNullCSV2(DB::WriteBuffer & ostr, const DB::FormatSettings & settings)
 {
-    writeString(settings.csv.null_representation, ostr);
+    writeString(settings.csv2.null_representation, ostr);
 }
 
 bool SerializationNullable::tryDeserializeNullCSV(DB::ReadBuffer & istr, const DB::FormatSettings & settings)
@@ -679,7 +679,7 @@ bool SerializationNullable::tryDeserializeNullCSV(DB::ReadBuffer & istr, const D
 
 bool SerializationNullable::tryDeserializeNullCSV2(DB::ReadBuffer & istr, const DB::FormatSettings & settings)
 {
-    return checkString(settings.csv.null_representation, istr);
+    return checkString(settings.csv2.null_representation, istr);
 }
 
 template<typename ReturnType>
@@ -798,7 +798,7 @@ ReturnType deserializeTextCSV2Impl(
         nested_serialization->deserializeTextCSV2(nested_column, buf, settings);
     };
 
-    const String & null_representation = settings.csv.null_representation;
+    const String & null_representation = settings.csv2.null_representation;
     if (istr.eof() || (!null_representation.empty() && *istr.position() != null_representation[0]))
     {
         /// This is not null, surely.
@@ -806,13 +806,13 @@ ReturnType deserializeTextCSV2Impl(
     }
 
     /// Check if we have enough data in buffer to check if it's a null.
-    if (settings.csv.custom_delimiter.empty() && istr.available() > null_representation.size())
+    if (settings.csv2.custom_delimiter.empty() && istr.available() > null_representation.size())
     {
         auto check_for_null = [&null_representation, &settings](ReadBuffer & buf)
         {
             auto * pos = buf.position();
             if (checkString(null_representation, buf)
-                && (*buf.position() == settings.csv.delimiter || *buf.position() == '\r' || *buf.position() == '\n'))
+                && (*buf.position() == settings.csv2.delimiter || *buf.position() == '\r' || *buf.position() == '\n'))
                 return true;
             buf.position() = pos;
             return false;
@@ -831,9 +831,9 @@ ReturnType deserializeTextCSV2Impl(
         SCOPE_EXIT(buf.dropCheckpoint());
         if (checkString(null_representation, buf))
         {
-            if (!settings.csv.custom_delimiter.empty())
+            if (!settings.csv2.custom_delimiter.empty())
             {
-                if (checkString(settings.csv.custom_delimiter, buf))
+                if (checkString(settings.csv2.custom_delimiter, buf))
                 {
                     /// Rollback to the beginning of custom delimiter.
                     buf.rollbackToCheckpoint();
@@ -841,7 +841,7 @@ ReturnType deserializeTextCSV2Impl(
                     return true;
                 }
             }
-            else if (buf.eof() || *buf.position() == settings.csv.delimiter || *buf.position() == '\r' || *buf.position() == '\n')
+            else if (buf.eof() || *buf.position() == settings.csv2.delimiter || *buf.position() == '\r' || *buf.position() == '\n')
                 return true;
         }
 
@@ -873,7 +873,7 @@ ReturnType deserializeTextCSV2Impl(
         if constexpr (!throw_exception)
             return ReturnType(false);
 
-        if (null_representation.find(settings.csv.delimiter) != std::string::npos || null_representation.find('\r') != std::string::npos
+        if (null_representation.find(settings.csv2.delimiter) != std::string::npos || null_representation.find('\r') != std::string::npos
             || null_representation.find('\n') != std::string::npos)
             throw DB::Exception(
                 ErrorCodes::CANNOT_READ_ALL_DATA,

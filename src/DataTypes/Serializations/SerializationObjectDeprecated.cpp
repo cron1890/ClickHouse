@@ -130,7 +130,7 @@ void SerializationObjectDeprecated<Parser>::deserializeTextCSV(IColumn & column,
 template <typename Parser>
 void SerializationObjectDeprecated<Parser>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    deserializeTextImpl(column, [&](String & s) { readCSVStringInto(s, istr, settings.csv); });
+    deserializeTextImpl(column, [&](String & s) { readCSV2StringInto(s, istr, settings.csv2); });
 }
 
 

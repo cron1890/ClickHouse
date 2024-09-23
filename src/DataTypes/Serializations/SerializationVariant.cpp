@@ -1016,7 +1016,7 @@ bool SerializationVariant::tryDeserializeTextCSV(IColumn & column, ReadBuffer & 
 bool SerializationVariant::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String field;
-    readCSVStringInto<String, true, false>(field, istr, settings.csv);
+    readCSV2StringInto<String, true, false>(field, istr, settings.csv2);
     return tryDeserializeTextCSV2Impl(column, field, settings);
 }
 
@@ -1031,7 +1031,7 @@ void SerializationVariant::deserializeTextCSV(IColumn & column, ReadBuffer & ist
 void SerializationVariant::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String field;
-    readCSV2Field(field, istr, settings.csv);
+    readCSV2Field(field, istr, settings.csv2);
     if (!tryDeserializeTextCSV2Impl(column, field, settings))
         throw Exception(ErrorCodes::INCORRECT_DATA, "Cannot parse CSV value of type {} here: {}", variant_name, field);
 }

@@ -203,7 +203,7 @@ void SerializationAggregateFunction::serializeTextCSV(const IColumn & column, si
 
 void SerializationAggregateFunction::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const
 {
-    writeCSV(serializeToString(function, column, row_num, version), ostr);
+    writeCSV2(serializeToString(function, column, row_num, version), ostr);
 }
 
 void SerializationAggregateFunction::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
@@ -216,7 +216,7 @@ void SerializationAggregateFunction::deserializeTextCSV(IColumn & column, ReadBu
 void SerializationAggregateFunction::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
-    readCSV(s, istr, settings.csv);
+    readCSV2(s, istr, settings.csv2);
     deserializeFromString(function, column, s, version);
 }
 

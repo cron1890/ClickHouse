@@ -88,7 +88,7 @@ void skipFieldByEscapingRule(ReadBuffer & buf, FormatSettings::EscapingRule esca
             readCSVStringInto(out, buf, format_settings.csv);
             break;
         case FormatSettings::EscapingRule::CSV2:
-            readCSVStringInto(out, buf, format_settings.csv);
+            readCSV2StringInto(out, buf, format_settings.csv2);
             break;
         case FormatSettings::EscapingRule::JSON:
             skipJSONField(buf, StringRef(field_name, field_name_len), format_settings.json);
@@ -252,9 +252,9 @@ String readByEscapingRule(ReadBuffer & buf, FormatSettings::EscapingRule escapin
             break;
         case FormatSettings::EscapingRule::CSV2:
             if constexpr (read_string)
-                readCSVString(result, buf, format_settings.csv);
+                readCSV2String(result, buf, format_settings.csv2);
             else
-                readCSVField(result, buf, format_settings.csv);
+                readCSV2Field(result, buf, format_settings.csv2);
             break;
         case FormatSettings::EscapingRule::Escaped:
             if constexpr (read_string)
@@ -333,6 +333,52 @@ DataTypePtr tryInferDataTypeByEscapingRule(const String & field, const FormatSet
                 ///  - it's a tuple and try_infer_strings_from_quoted_tuples = 0
                 ///  - it's a Bool type (we don't allow reading bool values from strings)
                 if (!type || (format_settings.csv.try_infer_strings_from_quoted_tuples && isTuple(type)) || (!format_settings.csv.try_infer_numbers_from_strings && isNumber(type)) || isBool(type))
+                    return std::make_shared<DataTypeString>();
+
+                return type;
+            }
+
+            /// Case when CSV value is not in quotes. Check if it's a number or date/datetime, and if not, determine it as a string.
+            if (auto number_type = tryInferNumberFromString(field, format_settings))
+                return number_type;
+
+            if (auto date_type = tryInferDateOrDateTimeFromString(field, format_settings))
+                return date_type;
+
+            return std::make_shared<DataTypeString>();
+        }
+         case FormatSettings::EscapingRule::CSV2:
+        {
+            if (!format_settings.csv2.use_best_effort_in_schema_inference)
+                return std::make_shared<DataTypeString>();
+
+            if (field.empty())
+                return nullptr;
+
+            if (field == format_settings.csv2.null_representation)
+                return makeNullable(std::make_shared<DataTypeNothing>());
+
+            if (field == format_settings.bool_false_representation || field == format_settings.bool_true_representation)
+                return DataTypeFactory::instance().get("Bool");
+
+            /// In CSV complex types are serialized in quotes. If we have quotes, we should try to infer type
+            /// from data inside quotes.
+            if (field.size() > 1 && ((field.front() == '\'' && field.back() == '\'') || (field.front() == '"' && field.back() == '"')))
+            {
+                auto data = std::string_view(field.data() + 1, field.size() - 2);
+                /// First, try to infer dates and datetimes.
+                if (auto date_type = tryInferDateOrDateTimeFromString(data, format_settings))
+                    return date_type;
+
+                /// Try to determine the type of value inside quotes
+                auto type = tryInferDataTypeForSingleField(data, format_settings);
+
+                /// Return String type if one of the following conditions apply
+                ///  - we couldn't infer any type
+                ///  - it's a number and csv.try_infer_numbers_from_strings = 0
+                ///  - it's a tuple and try_infer_strings_from_quoted_tuples = 0
+                ///  - it's a Bool type (we don't allow reading bool values from strings)
+                if (!type || (format_settings.csv2.try_infer_strings_from_quoted_tuples && isTuple(type)) || (!format_settings.csv2.try_infer_numbers_from_strings && isNumber(type)) || isBool(type))
                     return std::make_shared<DataTypeString>();
 
                 return type;
@@ -478,6 +524,19 @@ String getAdditionalFormatInfoByEscapingRule(const FormatSettings & settings, Fo
                 settings.csv.tuple_delimiter,
                 settings.csv.try_infer_numbers_from_strings,
                 settings.csv.try_infer_strings_from_quoted_tuples);
+            break;
+        case FormatSettings::EscapingRule::CSV2:
+            result += fmt::format(
+                ", use_best_effort_in_schema_inference={}, bool_true_representation={}, bool_false_representation={},"
+                " null_representation={}, delimiter={}, tuple_delimiter={}, try_infer_numbers_from_strings={}, try_infer_strings_from_quoted_tuples={}",
+                settings.csv2.use_best_effort_in_schema_inference,
+                settings.bool_true_representation,
+                settings.bool_false_representation,
+                settings.csv2.null_representation,
+                settings.csv2.delimiter,
+                settings.csv2.tuple_delimiter,
+                settings.csv2.try_infer_numbers_from_strings,
+                settings.csv2.try_infer_strings_from_quoted_tuples);
             break;
         case FormatSettings::EscapingRule::JSON:
             result += fmt::format(

@@ -126,6 +126,31 @@ FormatSettings getFormatSettings(const ContextPtr & context, const Settings & se
     format_settings.csv.use_default_on_bad_values = settings[Setting::input_format_csv_use_default_on_bad_values];
     format_settings.csv.try_infer_numbers_from_strings = settings[Setting::input_format_csv_try_infer_numbers_from_strings];
     format_settings.csv.try_infer_strings_from_quoted_tuples = settings[Setting::input_format_csv_try_infer_strings_from_quoted_tuples];
+
+    format_settings.csv2.allow_double_quotes = settings[Setting::format_csv_allow_double_quotes];
+    format_settings.csv2.allow_single_quotes = settings[Setting::format_csv_allow_single_quotes];
+    format_settings.csv2.serialize_tuple_into_separate_columns = settings[Setting::output_format_csv_serialize_tuple_into_separate_columns];
+    format_settings.csv2.deserialize_separate_columns_into_tuple = settings[Setting::input_format_csv_deserialize_separate_columns_into_tuple];
+    format_settings.csv2.crlf_end_of_line = settings[Setting::output_format_csv_crlf_end_of_line];
+    format_settings.csv2.allow_cr_end_of_line = settings[Setting::input_format_csv_allow_cr_end_of_line];
+    format_settings.csv2.delimiter = settings[Setting::format_csv_delimiter];
+    format_settings.csv2.tuple_delimiter = settings[Setting::format_csv_delimiter];
+    format_settings.csv2.empty_as_default = settings[Setting::input_format_csv_empty_as_default];
+    format_settings.csv2.enum_as_number = settings[Setting::input_format_csv_enum_as_number];
+    format_settings.csv2.null_representation = settings[Setting::format_csv_null_representation];
+    format_settings.csv2.arrays_as_nested_csv = settings[Setting::input_format_csv_arrays_as_nested_csv];
+    format_settings.csv2.use_best_effort_in_schema_inference = settings[Setting::input_format_csv_use_best_effort_in_schema_inference];
+    format_settings.csv2.skip_first_lines = settings[Setting::input_format_csv_skip_first_lines];
+    format_settings.csv2.try_detect_header = settings[Setting::input_format_csv_detect_header];
+    format_settings.csv2.skip_trailing_empty_lines = settings[Setting::input_format_csv_skip_trailing_empty_lines];
+    format_settings.csv2.trim_whitespaces = settings[Setting::input_format_csv_trim_whitespaces];
+    format_settings.csv2.allow_whitespace_or_tab_as_delimiter = settings[Setting::input_format_csv_allow_whitespace_or_tab_as_delimiter];
+    format_settings.csv2.allow_variable_number_of_columns = settings[Setting::input_format_csv_allow_variable_number_of_columns];
+    format_settings.csv2.use_default_on_bad_values = settings[Setting::input_format_csv_use_default_on_bad_values];
+    format_settings.csv2.try_infer_numbers_from_strings = settings[Setting::input_format_csv_try_infer_numbers_from_strings];
+    format_settings.csv2.try_infer_strings_from_quoted_tuples = settings[Setting::input_format_csv_try_infer_strings_from_quoted_tuples];
+
+
     format_settings.hive_text.fields_delimiter = settings[Setting::input_format_hive_text_fields_delimiter];
     format_settings.hive_text.collection_items_delimiter = settings[Setting::input_format_hive_text_collection_items_delimiter];
     format_settings.hive_text.map_keys_delimiter = settings[Setting::input_format_hive_text_map_keys_delimiter];

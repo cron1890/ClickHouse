@@ -331,7 +331,7 @@ void SerializationBool::deserializeTextCSV2(IColumn & column, ReadBuffer & istr,
     if (istr.eof())
         throw Exception(ErrorCodes::CANNOT_PARSE_BOOL, "Expected boolean value but get EOF.");
 
-    deserializeImpl(column, istr, settings, [&](ReadBuffer & buf){ return buf.eof() || *buf.position() == settings.csv.delimiter || *buf.position() == '\n' || *buf.position() == '\r'; });
+    deserializeImpl(column, istr, settings, [&](ReadBuffer & buf){ return buf.eof() || *buf.position() == settings.csv2.delimiter || *buf.position() == '\n' || *buf.position() == '\r'; });
 }
 
 bool SerializationBool::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
@@ -347,7 +347,7 @@ bool SerializationBool::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & is
     if (istr.eof())
         return false;
 
-    return deserializeImpl<bool>(column, istr, settings, [&](ReadBuffer & buf){ return buf.eof() || *buf.position() == settings.csv.delimiter || *buf.position() == '\n' || *buf.position() == '\r'; });
+    return deserializeImpl<bool>(column, istr, settings, [&](ReadBuffer & buf){ return buf.eof() || *buf.position() == settings.csv2.delimiter || *buf.position() == '\n' || *buf.position() == '\r'; });
 } 
 
 void SerializationBool::serializeTextRaw(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const

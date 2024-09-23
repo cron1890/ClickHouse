@@ -113,7 +113,7 @@ void SerializationCustomSimpleText::serializeTextCSV(const IColumn & column, siz
 
 void SerializationCustomSimpleText::serializeTextCSV2(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings & settings) const
 {
-    writeCSVString(serializeToString(*this, column, row_num, settings), ostr);
+    writeCSV2String(serializeToString(*this, column, row_num, settings), ostr);
 }
 
 void SerializationCustomSimpleText::deserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
@@ -126,7 +126,7 @@ void SerializationCustomSimpleText::deserializeTextCSV(IColumn & column, ReadBuf
 void SerializationCustomSimpleText::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String str;
-    readCSVString(str, istr, settings.csv);
+    readCSV2String(str, istr, settings.csv2);
     deserializeFromString(*this, column, str, settings);
 }
 
@@ -140,7 +140,7 @@ bool SerializationCustomSimpleText::tryDeserializeTextCSV(IColumn & column, Read
 bool SerializationCustomSimpleText::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String str;
-    readCSVStringInto<String, false, false>(str, istr, settings.csv);
+    readCSV2StringInto<String, false, false>(str, istr, settings.csv2);
     return tryDeserializeFromString(*this, column, str, settings);
 }
 

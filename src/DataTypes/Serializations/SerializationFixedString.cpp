@@ -271,7 +271,7 @@ void SerializationFixedString::deserializeTextCSV(IColumn & column, ReadBuffer &
 
 void SerializationFixedString::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    read(*this, column, [&istr, &csv = settings.csv](ColumnFixedString::Chars & data) { readCSVStringInto(data, istr, csv); });
+    read(*this, column, [&istr, &csv2 = settings.csv2](ColumnFixedString::Chars & data) { readCSV2StringInto(data, istr, csv2); });
 }
 
 bool SerializationFixedString::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
@@ -296,9 +296,9 @@ bool SerializationFixedString::tryDeserializeTextCSV2(IColumn & column, ReadBuff
     return tryRead(
         *this,
         column,
-        [&istr, &csv = settings.csv](ColumnFixedString::Chars & data)
+        [&istr, &csv2 = settings.csv2](ColumnFixedString::Chars & data)
         {
-            readCSVStringInto<ColumnFixedString::Chars, false, false>(data, istr, csv);
+            readCSV2StringInto<ColumnFixedString::Chars, false, false>(data, istr, csv2);
             return true;
         });
 }

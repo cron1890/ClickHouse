@@ -685,7 +685,7 @@ void SerializationDynamic::deserializeTextCSV2(IColumn & column, ReadBuffer & is
     auto read_field = [&settings](ReadBuffer & buf)
     {
         String field;
-        readCSVField(field, buf, settings.csv);
+        readCSV2Field(field, buf, settings.csv2);
         return field;
     };
 

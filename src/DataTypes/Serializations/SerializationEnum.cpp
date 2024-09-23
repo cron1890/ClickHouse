@@ -195,12 +195,12 @@ void SerializationEnum<Type>::deserializeTextCSV(IColumn & column, ReadBuffer & 
 template <typename Type>
 void SerializationEnum<Type>::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
-    if (settings.csv.enum_as_number)
+    if (settings.csv2.enum_as_number)
         assert_cast<ColumnType &>(column).getData().push_back(readValue(istr));
     else
     {
         std::string field_name;
-        readCSVString(field_name, istr, settings.csv);
+        readCSV2String(field_name, istr, settings.csv2);
         assert_cast<ColumnType &>(column).getData().push_back(ref_enum_values.getValue(StringRef(field_name), true));
     }
 }
@@ -233,7 +233,7 @@ bool SerializationEnum<Type>::tryDeserializeTextCSV2(IColumn & column, ReadBuffe
 {
     FieldType x;
 
-    if (settings.csv.enum_as_number)
+    if (settings.csv2.enum_as_number)
     {
         if (!tryReadValue(istr, x))
             return false;
@@ -241,7 +241,7 @@ bool SerializationEnum<Type>::tryDeserializeTextCSV2(IColumn & column, ReadBuffe
     else
     {
         std::string field_name;
-        readCSVString(field_name, istr, settings.csv);
+        readCSV2String(field_name, istr, settings.csv2);
         if (!ref_enum_values.tryGetValue(x, StringRef(field_name), true))
             return false;
     }

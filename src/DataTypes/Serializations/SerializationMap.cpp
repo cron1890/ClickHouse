@@ -416,7 +416,7 @@ void SerializationMap::deserializeTextCSV(IColumn & column, ReadBuffer & istr, c
 void SerializationMap::deserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
-    readCSV(s, istr, settings.csv);
+    readCSV2(s, istr, settings.csv2);
     ReadBufferFromString rb(s);
     deserializeText(column, rb, settings, true);
 }
@@ -433,7 +433,7 @@ bool SerializationMap::tryDeserializeTextCSV(IColumn & column, ReadBuffer & istr
 bool SerializationMap::tryDeserializeTextCSV2(IColumn & column, ReadBuffer & istr, const FormatSettings & settings) const
 {
     String s;
-    if (!tryReadCSV(s, istr, settings.csv))
+    if (!tryReadCSV2(s, istr, settings.csv2))
         return false;
     ReadBufferFromString rb(s);
     return tryDeserializeText(column, rb, settings, true);

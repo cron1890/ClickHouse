@@ -284,7 +284,7 @@ void SerializationDateTime::deserializeTextCSV2(IColumn & column, ReadBuffer & i
     }
     else
     {
-        if (settings.csv.delimiter != ',' || settings.date_time_input_format == FormatSettings::DateTimeInputFormat::Basic)
+        if (settings.csv2.delimiter != ',' || settings.date_time_input_format == FormatSettings::DateTimeInputFormat::Basic)
         {
             readText(x, istr, settings, time_zone, utc_time_zone);
         }
@@ -295,7 +295,7 @@ void SerializationDateTime::deserializeTextCSV2(IColumn & column, ReadBuffer & i
         else
         {
             String datetime_str;
-            readCSVString(datetime_str, istr, settings.csv);
+            readCSV2String(datetime_str, istr, settings.csv2);
             ReadBufferFromString buf(datetime_str);
             readText(x, buf, settings, time_zone, utc_time_zone);
             if (!buf.eof())
@@ -359,7 +359,7 @@ bool SerializationDateTime::tryDeserializeTextCSV2(IColumn & column, ReadBuffer 
     }
     else
     {
-        if (settings.csv.delimiter != ',' || settings.date_time_input_format == FormatSettings::DateTimeInputFormat::Basic)
+        if (settings.csv2.delimiter != ',' || settings.date_time_input_format == FormatSettings::DateTimeInputFormat::Basic)
         {
             if (!tryReadText(x, istr, settings, time_zone, utc_time_zone))
                 return false;
@@ -367,7 +367,7 @@ bool SerializationDateTime::tryDeserializeTextCSV2(IColumn & column, ReadBuffer 
         else
         {
             String datetime_str;
-            readCSVString(datetime_str, istr, settings.csv);
+            readCSV2String(datetime_str, istr, settings.csv2);
             ReadBufferFromString buf(datetime_str);
             if (!tryReadText(x, buf, settings, time_zone, utc_time_zone) || !buf.eof())
                 return false;

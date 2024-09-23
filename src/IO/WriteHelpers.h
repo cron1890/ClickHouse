@@ -1311,6 +1311,19 @@ inline void writeCSV(const UUID & x, WriteBuffer & buf) { writeDoubleQuoted(x, b
 inline void writeCSV(const IPv4 & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
 inline void writeCSV(const IPv6 & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
 
+
+template <typename T>
+requires is_arithmetic_v<T>
+inline void writeCSV2(const T & x, WriteBuffer & buf) { writeText(x, buf); }
+
+inline void writeCSV2(const String & x, WriteBuffer & buf) { writeCSV2String<>(x, buf); }
+inline void writeCSV2(const LocalDate & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
+inline void writeCSV2(const LocalDateTime & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
+inline void writeCSV2(const UUID & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
+inline void writeCSV2(const IPv4 & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
+inline void writeCSV2(const IPv6 & x, WriteBuffer & buf) { writeDoubleQuoted(x, buf); }
+
+
 template <typename T>
 void writeBinary(const std::vector<T> & x, WriteBuffer & buf)
 {
