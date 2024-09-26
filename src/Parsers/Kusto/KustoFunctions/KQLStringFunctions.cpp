@@ -431,6 +431,23 @@ bool ParseCSV::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
+bool ParseCSV2::convertImpl(String & out, IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    ++pos;
+    String csv2_string = getConvertedArgument(fn_name, pos);
+
+    out = std::format(
+        "if(position({0} ,'\n')::UInt8, (splitByChar(',', substring({0}, 1, position({0},'\n') -1))), (splitByChar(',', substring({0}, 1, "
+        "length({0})))))",
+        csv2_string);
+    return true;
+}
+
+
 bool ParseJSON::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);

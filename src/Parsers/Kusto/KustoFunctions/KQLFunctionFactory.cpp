@@ -74,6 +74,7 @@ std::unordered_map<String, KQLFunctionValue> KQLFunctionFactory::kql_functions
        {"isnull", KQLFunctionValue::isnull},
        {"parse_command_line", KQLFunctionValue::parse_command_line},
        {"parse_csv", KQLFunctionValue::parse_csv},
+       {"parse_csv2", KQLFunctionValue::parse_csv2},
        {"parse_json", KQLFunctionValue::parse_json},
        {"parse_url", KQLFunctionValue::parse_url},
        {"parse_urlquery", KQLFunctionValue::parse_urlquery},
@@ -387,6 +388,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(String & kql_functio
 
         case KQLFunctionValue::parse_csv:
             return std::make_unique<ParseCSV>();
+        
+        case KQLFunctionValue::parse_csv2:
+            return std::make_unique<ParseCSV2>();
 
         case KQLFunctionValue::parse_json:
             return std::make_unique<ParseJSON>();

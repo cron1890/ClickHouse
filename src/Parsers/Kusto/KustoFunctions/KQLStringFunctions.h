@@ -125,6 +125,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class ParseCSV2 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "parse_csv2()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class ParseJSON : public IParserKQLFunction
 {
 protected:

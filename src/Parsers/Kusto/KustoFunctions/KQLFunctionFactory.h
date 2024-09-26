@@ -59,6 +59,7 @@ enum class KQLFunctionValue : uint16_t
     isnull,
     parse_command_line,
     parse_csv,
+    parse_csv2,
     parse_json,
     parse_url,
     parse_urlquery,
